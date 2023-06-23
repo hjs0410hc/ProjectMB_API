@@ -24,6 +24,6 @@ app.use('/files',fileRouter);
 
 
 app.listen(port, () => {
-    mongoose.connect("mongodb+srv://thxxxyz:sgvkz2QAUSFsZ4WF@thxx.pmgzdhh.mongodb.net/test4?retryWrites=true&w=majority");
+    mongoose.connect("LEL");
     console.log(`Example app listening on port ${port}`);
 });
