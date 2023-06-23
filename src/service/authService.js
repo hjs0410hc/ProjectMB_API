@@ -2,7 +2,7 @@ const { HTTPError } = require("../customError");
 const { UserModel } = require("../schema/user");
 const { ERR_NOTFOUND, ERR_UNAUTH } = require("../strings");
 const { bencrypt, bdecrypt } = require("./bcryptService");
-const { sign } = require("./jwtService");
+const { sign, refresh } = require("./jwtService");
 
 /**
  * DB에 유저 정보를 저장하고 JWT 토큰을 발행한다. 
@@ -15,7 +15,8 @@ async function signUp(req){
     const newUser = new UserModel({email:email,username:username,password:hashedpw});
     const result = await newUser.save();
     const token = sign({_id:result._id,email:result.email,username:result.username});
-    return token;
+    const refToken = await refresh(result._id);
+    return [token,refToken];
 }
 
 /**
@@ -31,7 +32,8 @@ async function signIn(req){
     }
     if(await bdecrypt(password,findUser.password)){
         const token = sign({_id:findUser._id,email:findUser.email,username:findUser.username});
-        return token;
+        const refToken = await refresh(findUser._id);
+        return [token,refToken];
     }else{
         throw new HTTPError(403,ERR_UNAUTH);
     }

@@ -1,7 +1,7 @@
 var express = require('express');
 var authRouter = express.Router();
 var {bencrypt,bdecrypt} = require("../service/bcryptService")
-var {sign,verify} = require("../service/jwtService");
+var {sign,verify, refreshVerify} = require("../service/jwtService");
 var {authJWTMiddleware,authAllowAnonymous} = require("../middleware/authMiddleware");
 var {body,validationResult, oneOf}=require('express-validator');
 const { signUp, signIn } = require('../service/authService');
@@ -53,8 +53,9 @@ authRouter.post('/signup',
 body(['username','email','password']).notEmpty(),body('email').isEmail(),paramcheckMW,
 async (req,res)=>{
     try{
-        const resultToken = await signUp(req);
-        res.send({data:{token:resultToken}});
+        const [resultToken,refreshToken] = await signUp(req);
+        res.header('Cache-control','no-cache');
+        res.send({data:{token:resultToken,refreshToken:refreshToken}});
     }
     catch(ex){
         res.status(ex.code<512?ex.code:500).send({error:{message:ex.message}});
@@ -66,8 +67,23 @@ oneOf([body('username').notEmpty(),body('email').notEmpty().isEmail()]),
 body('password').notEmpty(),paramcheckMW,
 async (req,res)=>{
     try{
-        const resultToken = await signIn(req);
-        res.send({data:{token:resultToken}});
+        const [resultToken,refreshToken] = await signIn(req);
+        res.header('Cache-control','no-cache');
+        res.send({data:{token:resultToken,refreshToken:refreshToken}});
+    }catch(ex){
+        console.log(ex);
+        res.status(ex.code<512?ex.code:500).send({error:{message:ex.message}});
+    }
+})
+
+authRouter.post('/refresh',body('refreshToken').notEmpty(),paramcheckMW,async (req,res)=>{
+    try{
+        const acctoken=req.header('Authorization').replace('Bearer ','');
+        if(!acctoken){
+            throw new HTTPError(400,ERR_MISSINGPARAM); // missing acctoken header
+        }
+        const [accessToken,refreshToken] = await refreshVerify(req,acctoken);
+        res.send({data:{token:accessToken,refreshToken:refreshToken}});
     }catch(ex){
         console.log(ex);
         res.status(ex.code<512?ex.code:500).send({error:{message:ex.message}});

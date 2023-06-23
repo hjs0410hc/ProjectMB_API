@@ -18,6 +18,7 @@ userRouter.get('/',authJWTMiddleware,permCheckMiddleware(),async (req,res)=>{
 
 userRouter.get('/me',authJWTMiddleware,async (req,res)=>{
     try{
+        res.header('Cache-control','no-cache');
         res.send({data:req.user});
     }catch(ex){
         res.status(ex.code<512?ex.code:500).send({error:{message:ex.message}});

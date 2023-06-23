@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { authorSelect } = require("../selects");
 const {Schema} = mongoose;
 
 const postSchema = new Schema({
@@ -10,10 +11,12 @@ const postSchema = new Schema({
   createdAt: Date,
   editedAt: {type:Date, default:Date.now},
   isEdited: {type:Boolean, default:false},
-  comments:[{type:mongoose.Types.ObjectId,ref:"Comment"}],
+  comments:[{type:mongoose.Types.ObjectId,ref:"Comment",autopopulate:true}],
   isDeleted: {type:Boolean,default:false},
   deletedAt: {type:Date},
   isPrivate: {type:Boolean,default:false}
 },{timestamps:true});
+
+postSchema.plugin(require('mongoose-autopopulate'));
 
 module.exports = {PostModel:mongoose.model("Post",postSchema)};

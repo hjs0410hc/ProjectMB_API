@@ -9,6 +9,7 @@ var authRouter = require('./route/auth');
 const categoryRouter = require('./route/category');
 const postRouter = require('./route/post');
 const commRouter = require('./route/comment');
+const fileRouter = require('./route/file');
 
 app.use(morgan('combined'));
 app.use(express.json());
@@ -19,11 +20,8 @@ app.use('/auth',authRouter);
 app.use('/category',categoryRouter);
 app.use('/post',postRouter);
 app.use('/comment',commRouter);
+app.use('/files',fileRouter);
 
-
-app.get('/', (req, res) => {
-    res.send({data:"data"});
-});
 
 app.listen(port, () => {
     mongoose.connect("mongodb+srv://thxxxyz:sgvkz2QAUSFsZ4WF@thxx.pmgzdhh.mongodb.net/test4?retryWrites=true&w=majority");

@@ -35,9 +35,10 @@ async function createComment(req){
         isPrivate:isPrivate
     });
     const result = await newComm.save();
-    await post.updateOne({$push:{comments:result._id}});
     if(parcomm){
         await parcomm.updateOne({$push:{comments:result._id}});
+    }else{
+        await post.updateOne({$push:{comments:result._id}});
     }
     return result._id;
 }
@@ -49,7 +50,8 @@ async function updateComment(req){
     if(!comm){
         throw new HTTPError(404,ERR_NOTFOUND);
     }
-    if(comm.author != req.user._id){
+    if(!comm.author._id.equals(req.user._id)){
+        console.log(comm.author._id.equals(req.user._id))
         throw new HTTPError(403,ERR_FORBIDDEN);
     }
     const result = await comm.updateOne({
@@ -68,11 +70,13 @@ async function removeComment(req){
     if(!comm){
         throw new HTTPError(404,ERR_NOTFOUND);
     }
-    if(comm.author != req.user._id){
+    if(!comm.author._id.equals(req.user._id)){
+        console.log(comm.author._id, req.user._id)
         throw new HTTPError(403,ERR_FORBIDDEN);
     }
     const result = await comm.updateOne({
         isDeleted:true,
+        content:"Deleted",
         deletedAt:Date.now()
     });
     return result.modifiedCount;

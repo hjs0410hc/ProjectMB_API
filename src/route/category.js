@@ -41,7 +41,7 @@ async (req,res)=>{
     }
 });
 
-categoryRouter.put('/cattitle',authJWTMiddleware,permCheckMiddleware(),async(req,res)=>{
+categoryRouter.put('/:cattitle',authJWTMiddleware,permCheckMiddleware(),async(req,res)=>{
     try{
         const {cattitle}= req.params;
         if(!cattitle){
@@ -54,7 +54,7 @@ categoryRouter.put('/cattitle',authJWTMiddleware,permCheckMiddleware(),async(req
     }
 });
 
-categoryRouter.delete('/cattitle',authJWTMiddleware,permCheckMiddleware(),async(req,res)=>{
+categoryRouter.delete('/:cattitle',authJWTMiddleware,permCheckMiddleware(),async(req,res)=>{
     try{
         const {cattitle}= req.params;
         if(!cattitle){

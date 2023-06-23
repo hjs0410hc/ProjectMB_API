@@ -1,4 +1,6 @@
 var jwt = require('jsonwebtoken');
+const { ERR_FORBIDDEN, ERR_NOTFOUND } = require('../strings');
+const { UserModel } = require('../schema/user');
 const JWTKEY = "TESTINGJWTKEY"
 
 /**
@@ -12,7 +14,7 @@ function sign(user){
         email:user.email,
         username:user.username
     }
-    return jwt.sign(payload,JWTKEY,{expiresIn:'2d'});
+    return jwt.sign(payload,JWTKEY,{expiresIn:'1d'});
 }
 
 
@@ -35,16 +37,44 @@ function verify(token){
     }
 }
 
-function refresh(){
-    return jwt.sign({},JWTKEY,{expiresIn:'14d'});
+async function refresh(userid){
+    const user = await UserModel.findOne({_id:userid});
+    const newRefToken = jwt.sign({},JWTKEY,{expiresIn:"7d"});
+    await user.updateOne({
+        refToken:newRefToken
+    })
+
+    return newRefToken;
 }
 
-async function refreshVerify(token,userId){
-    // get refresh token from 'auth' collection. (async)
-    // parameter token과 db에서 가져온 refresh token이 같으면
-    // try to jwt.verify(token, JWTKEY) and return true
-    // catch error : invalid token (corrupted or expired.)
-    // return false
+// decode(access_token) 으로 계정 정보를 확인.
+// DB에 접속해서 해당 계정의 RefTokenExpiry를 확인.
+// RefTokenExpiry가 만료된 경우 실패 Response
+// RefTokenExpiry가 만료되지 않은 경우?
+// AccessToken 재발급, RefToken 재발급, RefTokenExpiry 재설정
+// Signin endpoint에 접속하여 성공적으로 로그인 시 RefToken 재발급, RefTokenExpiry 재설정
+// NO-REUSE 메타
+
+async function refreshVerify(req,acctoken){
+    const refToken = req.body.refreshToken;
+    if(!verify(refToken)){
+        return null; // reftoken expired
+    }
+    const acctokenData = jwt.decode(acctoken);
+    const user = await UserModel.findOne({username:acctokenData.username});
+    if(!user){
+        throw new HTTPError(404,ERR_NOTFOUND);
+    }
+    const refTokenFromDB = user.refToken;
+
+    if(refToken !== refTokenFromDB){ // invalid refToken.
+        return null;
+    }
+
+    const newAccToken = sign(user);
+    const newRefToken = await refresh(user._id);
+
+    return [newAccToken,newRefToken];
 }
 
 module.exports = {sign,verify,refreshVerify,refresh};

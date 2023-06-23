@@ -14,9 +14,9 @@ const { ERR_NOTFOUND, ERR_FORBIDDEN } = require("../strings");
 async function getAllCategory(req){
     var query;
     if(req.user && req.user.isAdmin){
-        query = {};
+        query = {isDeleted:false};
     }else{
-        query = {isPrivate:false};
+        query = {$and:[{isPrivate:false},{isDeleted:false}]};
     }
     const cates = await CateModel.find(query);
     return cates;
@@ -24,7 +24,10 @@ async function getAllCategory(req){
 
 async function getOneCategory(req){
     const {cattitle}=req.params;
-    const category = await CateModel.find({title:cattitle});
+    let {pagenum,limit}=req.query;
+    if(!pagenum)pagenum=1;
+    if(!limit)limit=10;
+    const category = await CateModel.findOne({title:cattitle});
     if(!category){
         throw new HTTPError(404,ERR_NOTFOUND);
     }
@@ -32,14 +35,14 @@ async function getOneCategory(req){
         throw new HTTPError(403,ERR_FORBIDDEN);
     }
     var query; // Private post filtering
-
     if((!req.user) || (req.user && !req.user.isAdmin)){
-        query = {$and:[{category:category._id},{isPrivate:false}]}
+        query = {$and:[{category:category._id},{isPrivate:false},{isDeleted:false}]}
     }else{
-        query  = {category:category._id};
+        query = {$and:[{category:category._id},{isDeleted:false}]};
     }
-    const posts = await PostModel.find(query).populate('author');
-    return {category:category,posts:posts};
+    const counts = await PostModel.count(query);
+    const posts = await PostModel.find(query).skip((pagenum-1)*limit).limit(limit).populate('category').populate('author');
+    return {category:category,posts:posts,count:counts};
 }
 
 async function createCategory(req){
@@ -52,7 +55,7 @@ async function createCategory(req){
 async function updateCategory(req){
     const {cattitle}= req.params;
     const {title,description,isPrivate} = req.body;
-    const category = await CateModel.find({title:cattitle});
+    const category = await CateModel.findOne({title:cattitle});
     if(!category){
         throw new HTTPError(404,ERR_NOTFOUND);
     }
@@ -64,7 +67,7 @@ async function updateCategory(req){
 async function updateCategory(req){
     const {cattitle}= req.params;
     const {title,description,isPrivate} = req.body;
-    const category = await CateModel.find({title:cattitle});
+    const category = await CateModel.findOne({title:cattitle});
     if(!category){
         throw new HTTPError(404,ERR_NOTFOUND);
     }
@@ -74,7 +77,7 @@ async function updateCategory(req){
 
 async function removeCategory(req){
     const {cattitle}= req.params;
-    const category = await CateModel.find({title:cattitle});
+    const category = await CateModel.findOne({title:cattitle});
     if(!category){
         throw new HTTPError(404,ERR_NOTFOUND);
     }

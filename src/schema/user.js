@@ -10,7 +10,8 @@ const userSchema = new Schema({
     isAdmin: {type:Boolean,default:false},
     deletedAt: {type:Date},
     isDeleted: {type:Boolean,default:false},
-    isPrivate:{type:Boolean,default:false}
+    isPrivate:{type:Boolean,default:false},
+    refToken: String
 },{timestamps:true});
 
 module.exports = {UserModel:mongoose.model("User",userSchema)};
