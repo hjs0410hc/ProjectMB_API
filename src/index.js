@@ -35,11 +35,11 @@ app.use('/files',fileRouter);
 }
 
 https.createServer(options, app).listen(3000,()=>{
-    mongoose.connect("mongodb+srv://thxxxyz:sgvkz2QAUSFsZ4WF@thxx.pmgzdhh.mongodb.net/test4?retryWrites=true&w=majority");
+    mongoose.connect("####");
     console.log(`API listening on port ${port}`);
 }) */
 
 app.listen(3000,()=>{
-    mongoose.connect("mongodb+srv://thxxxyz:sgvkz2QAUSFsZ4WF@thxx.pmgzdhh.mongodb.net/test4?retryWrites=true&w=majority");
+    mongoose.connect("###");
     console.log(`API listening on port ${port}`);
 })

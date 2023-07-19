@@ -1,7 +1,7 @@
 var jwt = require('jsonwebtoken');
 const { ERR_FORBIDDEN, ERR_NOTFOUND } = require('../strings');
 const { UserModel } = require('../schema/user');
-const JWTKEY = "TESTINGJWTKEY"
+const JWTKEY = "SECRET!!!!"
 
 /**
  * 
