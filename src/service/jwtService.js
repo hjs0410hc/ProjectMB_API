@@ -57,7 +57,7 @@ async function refresh(userid){
 
 async function refreshVerify(req,acctoken){
     const refToken = req.body.refreshToken;
-    if(!verify(refToken)){
+    if(!jwt.verify(refToken,JWTKEY)){
         return null; // reftoken expired
     }
     const acctokenData = jwt.decode(acctoken);
@@ -73,7 +73,6 @@ async function refreshVerify(req,acctoken){
 
     const newAccToken = sign(user);
     const newRefToken = await refresh(user._id);
-
     return [newAccToken,newRefToken];
 }
 

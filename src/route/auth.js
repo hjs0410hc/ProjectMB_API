@@ -5,7 +5,7 @@ var {sign,verify, refreshVerify} = require("../service/jwtService");
 var {authJWTMiddleware,authAllowAnonymous} = require("../middleware/authMiddleware");
 var {body,validationResult, oneOf}=require('express-validator');
 const { signUp, signIn } = require('../service/authService');
-const { ERR_MISSINGPARAM } = require('../strings');
+const { ERR_MISSINGPARAM, ERR_FORBIDDEN } = require('../strings');
 const { HTTPError, HTTPPropertyError } = require('../customError');
 const { paramcheckMW } = require('../middleware/paramCheckMW');
 
@@ -82,7 +82,11 @@ authRouter.post('/refresh',body('refreshToken').notEmpty(),paramcheckMW,async (r
         if(!acctoken){
             throw new HTTPError(400,ERR_MISSINGPARAM); // missing acctoken header
         }
-        const [accessToken,refreshToken] = await refreshVerify(req,acctoken);
+        const result = await refreshVerify(req,acctoken);
+        if(!result){
+            throw new HTTPError(403,ERR_FORBIDDEN);
+        }
+        const [accessToken,refreshToken] = result;
         res.send({data:{token:accessToken,refreshToken:refreshToken}});
     }catch(ex){
         console.log(ex);
